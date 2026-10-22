@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Shop Credit Tracker — Project Presentation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #10243a;
+      --ink: #192b40;
+      --muted: #63758a;
+      --teal: #16b8a6;
+      --blue: #4c7cf3;
+      --paper: #f3f6fa;
+      --white: #fff;
+      --line: #d8e1e9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0b1826;
+      color: var(--ink);
+      font: 16px/1.5 "Segoe UI", Arial, sans-serif;
+    }
+    .toolbar {
+      position: fixed;
+      z-index: 5;
+      inset: 0 0 auto;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 18px;
+      color: white;
+      background: rgba(16, 36, 58, .96);
+      border-bottom: 1px solid #29435b;
+    }
+    .toolbar strong { font-size: 14px; letter-spacing: .04em; }
+    .toolbar .controls { display: flex; align-items: center; gap: 9px; }
+    button {
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid #496176;
+      border-radius: 7px;
+      color: white;
+      background: #193650;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:hover { background: #28506d; }
+    button.save { color: #10243a; background: #16b8a6; border-color: #16b8a6; font-weight: 700; }
+    #counter { min-width: 54px; text-align: center; font-size: 13px; color: #d4e0ea; }
+    main { padding: 76px 20px 32px; }
+    .slide {
+      display: none;
+      position: relative;
+      width: min(1280px, calc(100vw - 40px));
+      aspect-ratio: 16 / 9;
+      margin: 0 auto;
+      padding: 6.1% 6.5%;
+      overflow: hidden;
+      background: var(--paper);
+      border-radius: 12px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.3);
+    }
+    .slide.active { display: block; }
+    .slide.dark { color: white; background: var(--navy); }
+    .slide.dark::before {
+      position: absolute; content: ""; width: 9px; left: 5.2%; top: 9.8%; bottom: 9.8%;
+      border-radius: 10px; background: var(--teal);
+    }
+    .section {
+      margin: 0 0 11px;
+      color: var(--teal);
+      font-size: clamp(10px, 1.05vw, 14px);
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 14px; font-size: clamp(32px, 5vw, 64px); line-height: 1.08; }
+    h2 { margin-bottom: 20px; font-size: clamp(26px, 3.3vw, 42px); line-height: 1.13; color: var(--navy); }
+    .dark h2 { color: white; }
+    h3 { margin-bottom: 9px; font-size: clamp(15px, 1.5vw, 20px); color: var(--navy); }
+    .dark h3 { color: white; }
+    p, li { font-size: clamp(12px, 1.35vw, 18px); }
+    .muted { color: var(--muted); }
+    .dark .muted { color: #b8c9d8; }
+    .subtitle { color: #b8c9d8; font-size: clamp(16px, 2vw, 24px); }
+    .foot {
+      position: absolute; left: 6.5%; bottom: 3.2%;
+      color: var(--muted); font-size: 10px; letter-spacing: .08em;
+    }
+    .dark .foot { color: #a9bacb; }
+    .number {
+      position: absolute; right: 6.5%; bottom: 3%;
+      color: var(--teal); font-weight: 800;
+    }
+    .grid { display: grid; gap: 14px; }
+    .three { grid-template-columns: repeat(3, 1fr); }
+    .two { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      padding: 17px 19px;
+      border-left: 5px solid var(--teal);
+      border-radius: 9px;
+      background: white;
+      box-shadow: 0 4px 18px rgba(25,43,64,.06);
+    }
+    .card p { margin: 0; color: var(--muted); font-size: clamp(11px, 1.12vw, 15px); }
+    .card.blue { border-color: var(--blue); }
+    .card.orange { border-color: #f2a65a; }
+    .card.green { border-color: #42a77a; }
+    .banner {
+      margin-top: 20px;
+      padding: 17px 22px;
+      border-radius: 9px;
+      color: white;
+      background: var(--navy);
+      font-weight: 700;
+      font-size: clamp(14px, 1.6vw, 20px);
+      text-align: center;
+    }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
+    ul { padding-left: 1.2em; }
+    li { margin: 0 0 8px; }
+    .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 35px; }
+    .step { min-height: 160px; padding: 18px; border-radius: 10px; background: white; }
+    .step b { display: block; margin-bottom: 17px; color: var(--teal); font-size: 24px; }
+    .step strong { display: block; color: var(--navy); font-size: clamp(14px, 1.5vw, 19px); }
+    .step small { display: block; margin-top: 8px; color: var(--muted); font-size: clamp(11px, 1vw, 14px); }
+    .layers { width: 82%; margin: 0 auto; }
+    .layer { margin: 8px 0; padding: 11px 17px; border-radius: 7px; background: white; font-size: clamp(12px, 1.3vw, 17px); }
+    .layer strong { display: inline-block; width: 23%; color: var(--teal); font-size: .88em; letter-spacing: .07em; }
+    .formula { margin: 21px 0; padding: 20px; border-radius: 10px; color: white; background: var(--navy); text-align: center; font-size: clamp(18px, 2.5vw, 30px); font-weight: 800; }
+    .metric { padding: 14px; border-radius: 8px; background: #e8f1ff; text-align: center; font-weight: 800; }
+    .metric:nth-child(2) { background: #fff1e3; }
+    .metric:nth-child(3) { background: #e5f5f2; }
+    .api-list { padding: 18px 20px; border-radius: 10px; background: white; font: 14px/1.9 Consolas, monospace; }
+    .label { color: var(--teal); font-weight: 800; letter-spacing: .1em; }
+    .conclusion { margin-top: 26px; color: var(--teal); font-size: clamp(19px, 3vw, 34px); font-weight: 800; }
+    @media (max-width: 720px) {
+      .toolbar strong { display: none; }
+      .toolbar { justify-content: center; }
+      .slide { padding: 9% 6%; }
+      .steps { gap: 5px; }
+      .step { padding: 9px; min-height: 120px; }
+      .cols { gap: 16px; }
+      .card { padding: 11px; }
+    }
+    @media print {
+      @page { size: 13.333in 7.5in; margin: 0; }
+      html, body { width: 13.333in; margin: 0; background: white; }
+      .toolbar { display: none !important; }
+      main { padding: 0; }
+      .slide, .slide.active {
+        display: block !important;
+        width: 13.333in;
+        height: 7.5in;
+        aspect-ratio: auto;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        break-after: page;
+        page-break-after: always;
+      }
+      .slide:last-child { break-after: auto; page-break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <strong>SMART SHOP CREDIT TRACKER · PROJECT PRESENTATION</strong>
+    <div class="controls">
+      <button type="button" id="prev" aria-label="Previous slide">← Previous</button>
+      <span id="counter">1 / 12</span>
+      <button type="button" id="next" aria-label="Next slide">Next →</button>
+      <button type="button" class="save" onclick="window.print()">Save / Print PDF</button>
+    </div>
+  </header>
+  <main>
+    <section class="slide dark active">
+      <div class="section">Project presentation</div>
+      <h1>Smart Shop<br>Credit Tracker</h1>
+      <p class="subtitle">Customer credit &amp; payment management</p>
+      <p style="margin-top:9%;color:#b8c9d8">A simple, transparent way to track shop customer dues.</p>
+      <p style="margin-top:7%;color:#16b8a6;font-weight:700">Project review · English presentation</p>
+      <div style="position:absolute;right:11%;top:35%;padding:24px 31px;border-radius:12px;background:#193650;text-align:center">
+        <div style="color:#b8c9d8;font-size:12px;letter-spacing:.1em">SAMPLE BALANCE</div>
+        <strong style="display:block;margin:13px 0;font-size:36px">₹1,200</strong>
+        <small style="color:#16b8a6">₹2,000 credit − ₹800 paid</small>
+      </div>
+      <p class="foot">SMART SHOP CREDIT TRACKER · ACADEMIC PROJECT REVIEW</p>
+    </section>
+
+    <section class="slide">
+      <div class="section">01 / Executive summary</div>
+      <h2>A focused solution for everyday shop credit</h2>
+      <div class="grid three">
+        <article class="card blue"><h3>The need</h3><p>Paper or scattered records make it harder to find customer history, reconcile part-payments and prepare dues summaries.</p></article>
+        <article class="card"><h3>The product</h3><p>A staff-facing web app to maintain customers, record purchases and repayments, and review ledgers and reports.</p></article>
+        <article class="card orange"><h3>Review verdict</h3><p>Strong academic concept with thoughtful transaction safeguards. Production readiness is not established.</p></article>
+      </div>
+      <div class="banner">One customer record → every transaction saved → balance calculated from the ledger</div>
+      <p class="muted" style="margin-top:17px">Scope: academic/local-development application; no claim of live shop deployment.</p>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">02</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">02 / Problem &amp; proposal</div><h2>Replace manual reconciliation with a shared record</h2>
+      <div class="cols">
+        <div><p class="label">TODAY’S PAIN POINTS</p><ul><li>Searching notebooks takes time.</li><li>Partial payments are easy to miscalculate.</li><li>Records can be missed or duplicated.</li><li>Current dues are hard to summarize.</li></ul></div>
+        <div><p class="label">PROPOSED APPROACH</p><ul><li>Central customer directory and search.</li><li>Separate credit and payment entries.</li><li>Server-checked rules and current balance.</li><li>Ledger, pending dues and date-range reports.</li></ul></div>
+      </div>
+      <div class="banner">Goal: improve visibility and consistency—not claim that data-entry errors disappear.</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">03</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">03 / User journey</div><h2>A straightforward staff workflow</h2>
+      <div class="steps">
+        <div class="step"><b>01</b><strong>Sign in</strong><small>Staff session</small></div>
+        <div class="step"><b>02</b><strong>Manage customer</strong><small>Create, search, edit</small></div>
+        <div class="step"><b>03</b><strong>Record activity</strong><small>Credit or repayment</small></div>
+        <div class="step"><b>04</b><strong>Check balance</strong><small>Ledger and running total</small></div>
+        <div class="step"><b>05</b><strong>Review reports</strong><small>Dues and date filters</small></div>
+      </div>
+      <div class="banner">Browser → REST API → validated business logic → MySQL</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">04</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">04 / Technical architecture</div><h2>Layered design keeps responsibilities clear</h2>
+      <div class="layers">
+        <div class="layer"><strong>FRONTEND</strong> HTML5 · CSS3 · vanilla JavaScript · Bootstrap 5.3 · Fetch API</div>
+        <div class="layer"><strong>API + SECURITY</strong> Spring Boot REST · session · CSRF</div>
+        <div class="layer"><strong>BUSINESS LOGIC</strong> Service validation · transactions · balance rules</div>
+        <div class="layer"><strong>DATA ACCESS</strong> JdbcTemplate · parameterized SQL · repository</div>
+        <div class="layer"><strong>PERSISTENCE</strong> MySQL · customers · credit entries · payments</div>
+      </div>
+      <div class="banner">Money values use MySQL DECIMAL(12,2) and Java BigDecimal.</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">05</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">05 / Product modules</div><h2>The project covers the core credit-tracking loop</h2>
+      <div class="grid three">
+        <article class="card blue"><h3>Customer management</h3><p>Create, find, update, archive or restore customer profiles.</p></article>
+        <article class="card"><h3>Credit entries</h3><p>Record purchase description, amount, date and optional notes.</p></article>
+        <article class="card green"><h3>Payments</h3><p>Accept cash, UPI or other; support partial and full repayment.</p></article>
+        <article class="card"><h3>Customer ledger</h3><p>Chronological entries, totals and running balance.</p></article>
+        <article class="card orange"><h3>Dashboard &amp; dues</h3><p>Summary metrics, recent activity and outstanding dues.</p></article>
+        <article class="card blue"><h3>Reports</h3><p>Outstanding customers and date-filtered credit/payment reports.</p></article>
+      </div>
+      <div class="banner">Archiving preserves historical financial records; it does not delete them.</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">06</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">06 / Data &amp; balance logic</div><h2>Transactions are the source of truth</h2>
+      <div class="grid three">
+        <article class="card blue"><h3>CUSTOMERS</h3><p>Profile, phone, address and active status.</p></article>
+        <article class="card"><h3>CREDIT_ENTRIES</h3><p>Customer-linked purchases with positive decimal amount.</p></article>
+        <article class="card green"><h3>PAYMENTS</h3><p>Customer-linked repayments with method and retry key.</p></article>
+      </div>
+      <div class="formula">Total credits − total payments = outstanding balance</div>
+      <div class="grid three"><div class="metric">₹2,000 credit</div><div class="metric">₹800 payment</div><div class="metric">₹1,200 due</div></div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">07</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">07 / Validation &amp; safety</div><h2>Useful safeguards are built into the transaction path</h2>
+      <div class="grid two">
+        <article class="card blue"><h3>Amount &amp; date validation</h3><p>Positive values, at most two decimals; future transaction dates rejected.</p></article>
+        <article class="card"><h3>Overpayment prevention</h3><p>Backend checks current due and rejects a payment above the outstanding balance.</p></article>
+        <article class="card green"><h3>Concurrent writes</h3><p>Customer row lock and transaction serialize balance checks for that customer.</p></article>
+        <article class="card orange"><h3>Duplicate retry protection</h3><p>Unique payment request key prevents a repeated submission being recorded twice.</p></article>
+      </div>
+      <div class="banner">Also present: BCrypt passwords · authenticated sessions · CSRF token · parameterized SQL</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">08</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">08 / Interface &amp; API</div><h2>Browser dashboard backed by protected REST endpoints</h2>
+      <div class="cols">
+        <div><p class="label">STAFF WORKSPACE</p><ul><li>Dashboard and recent transactions</li><li>Customer directory and search</li><li>Credit entries, payments and ledger</li><li>Pending dues and date-filtered reports</li></ul></div>
+        <div><p class="label">API EXAMPLES</p><div class="api-list">GET&nbsp;&nbsp; /api/dashboard<br>GET&nbsp;&nbsp; /api/customers?search=…<br>POST /api/credits<br>POST /api/payments<br>GET&nbsp;&nbsp; /api/customers/{id}/ledger<br>GET&nbsp;&nbsp; /api/reports/outstanding</div></div>
+      </div>
+      <div class="banner">HTML5 + CSS3 + vanilla JavaScript · Bootstrap 5.3 · Fetch API · hash navigation · session cookies + CSRF</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">09</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">09 / Testing &amp; evidence</div><h2>Report what is verified—and what still needs a live run</h2>
+      <div class="grid two">
+        <article class="card green"><h3>Automated unit tests</h3><ul><li>Overpayment rejection</li><li>Partial payment updates balance</li><li>Full payment clears balance</li><li>Duplicate retry is not inserted twice</li><li>Amount precision and positivity</li></ul></article>
+        <article class="card orange"><h3>Still needs local verification</h3><ul><li>MySQL-backed end-to-end workflow</li><li>Browser/UI checks and screenshots</li><li>Concurrency test against MySQL</li><li>Backup/recovery and operations</li><li>Production security assessment</li></ul></article>
+      </div>
+      <p class="muted" style="margin-top:16px">The project report records 5 unit tests passing. Rerun the test suite before submission; live integration is not claimed here.</p>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">10</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">10 / Critical review</div><h2>Good foundation—with clear next steps</h2>
+      <div class="cols">
+        <div><p class="label" style="color:#d98b38">CURRENT LIMITATIONS</p><ul><li>Payments are not allocated to specific purchases.</li><li>Oldest-credit age is therefore an estimate.</li><li>No detailed audit/correction workflow.</li><li>No password reset or staff-admin screen.</li><li>No backup, deployment or multi-shop operations.</li></ul></div>
+        <div><p class="label">RECOMMENDED ROADMAP</p><ul><li>Allocate repayments to credit invoices.</li><li>Add auditable corrections and staff roles.</li><li>Add tested backup and restore procedures.</li><li>Run integration, security and usability tests.</li><li>Deploy behind HTTPS with production settings.</li></ul></div>
+      </div>
+      <div class="banner">Recommendation: present and extend as an academic prototype; do not use for real financial operations as-is.</div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">11</span>
+    </section>
+
+    <section class="slide">
+      <div class="section">11 / Conclusion</div><h2>A practical academic project with a credible core</h2>
+      <div class="grid two">
+        <article class="card"><h3>Suggested demo sequence</h3><ol><li>Sign in as staff</li><li>Create or find a customer</li><li>Add ₹2,000 credit</li><li>Record ₹800 payment → show ₹1,200 due</li><li>Pay ₹1,200 → confirm zero balance</li><li>Show ledger and report</li></ol></article>
+        <article class="card blue"><h3>Review summary</h3><p>Clear use case, useful core modules, and thoughtful transaction protections for an academic prototype. Improve payment allocation, auditability, integration testing and operational readiness before real-world use.</p><div class="conclusion">Thank you · Questions?</div></article>
+      </div>
+      <span class="foot">SMART SHOP CREDIT TRACKER · PROJECT REVIEW</span><span class="number">12</span>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll(".slide")];
+      const counter = document.getElementById("counter");
+      let current = 0;
+      function show(index) {
+        current = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+        counter.textContent = `${current + 1} / ${slides.length}`;
+      }
+      document.getElementById("prev").addEventListener("click", () => show(current - 1));
+      document.getElementById("next").addEventListener("click", () => show(current + 1));
+      document.addEventListener("keydown", event => {
+        if (event.key === "ArrowRight" || event.key === "PageDown") show(current + 1);
+        if (event.key === "ArrowLeft" || event.key === "PageUp") show(current - 1);
+      });
+    })();
+  </script>
+</body>
+</html>
