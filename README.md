@@ -1,4 +1,4 @@
- Par# Smart Shop Credit Tracker
+# Smart Shop Credit Tracker
 
 A Java + Spring Boot + JDBC + MySQL web application for shop staff to manage customer credit, repayments, ledgers and reports. Frontend is plain HTML, CSS, JavaScript, Bootstrap 5 and Fetch API. Financial records in MySQL are the source of truth; balances are calculated from credit and payment rows.
 
